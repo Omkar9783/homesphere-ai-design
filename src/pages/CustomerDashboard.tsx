@@ -1,19 +1,81 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Home, Bot, ShoppingBag, Palette, Sparkles, LogOut } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Home, Bot, ShoppingBag, Palette, Sparkles, LogOut, Edit, Trash2, Plus } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { DesignEditor } from '@/components/design/DesignEditor';
+import { AIRecommendations } from '@/components/design/AIRecommendations';
+
+interface Design {
+  id: string;
+  title: string;
+  description: string;
+  style: string;
+  price: number;
+  room_type: string;
+  image_url?: string;
+  created_at: string;
+}
 
 const CustomerDashboard = () => {
-  const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const { toast } = useToast();
+  const [myDesigns, setMyDesigns] = useState<Design[]>([]);
+  const [featuredDesigns, setFeaturedDesigns] = useState<Design[]>([]);
+  const [showEditor, setShowEditor] = useState(false);
+  const [showAIDialog, setShowAIDialog] = useState(false);
+  const [editingDesign, setEditingDesign] = useState<Design | undefined>();
 
-  const recommendations = [
-    { id: 1, title: "Modern Minimalist Living Room", style: "Minimalist", price: "$2,499" },
-    { id: 2, title: "Cozy Scandinavian Bedroom", style: "Scandinavian", price: "$1,899" },
-    { id: 3, title: "Industrial Loft Kitchen", style: "Industrial", price: "$3,299" },
-  ];
+  useEffect(() => {
+    fetchMyDesigns();
+    fetchFeaturedDesigns();
+  }, []);
 
-  const handleLogout = () => {
-    navigate("/");
+  const fetchMyDesigns = async () => {
+    const { data } = await supabase
+      .from('room_designs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10);
+    
+    if (data) setMyDesigns(data);
+  };
+
+  const fetchFeaturedDesigns = async () => {
+    const { data } = await supabase
+      .from('room_designs')
+      .select('*')
+      .eq('is_featured', true)
+      .limit(3);
+    
+    if (data) setFeaturedDesigns(data);
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase
+      .from('room_designs')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error deleting design",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Design deleted successfully" });
+      fetchMyDesigns();
+    }
+  };
+
+  const handleSave = () => {
+    setShowEditor(false);
+    setEditingDesign(undefined);
+    fetchMyDesigns();
   };
 
   return (
@@ -27,7 +89,7 @@ const CustomerDashboard = () => {
               AI HomeSphere
             </span>
           </div>
-          <Button variant="ghost" onClick={handleLogout} className="text-foreground hover:text-destructive">
+          <Button variant="ghost" onClick={signOut} className="hover:text-destructive">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
@@ -36,102 +98,174 @@ const CustomerDashboard = () => {
 
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Welcome Back!</h1>
-          <p className="text-muted-foreground">Your personalized design workspace</p>
+          <h1 className="text-4xl font-bold mb-2">Welcome to Your Design Studio</h1>
+          <p className="text-muted-foreground">Create, edit, and explore AI-powered room designs</p>
         </div>
 
-        {/* Quick Actions */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gradient-card border-border/50 hover:shadow-glow-primary transition-all cursor-pointer">
+          <Card 
+            className="bg-gradient-card border-border/50 hover:shadow-glow-primary transition-all cursor-pointer"
+            onClick={() => setShowAIDialog(true)}
+          >
             <CardHeader>
-              <Palette className="w-10 h-10 text-primary mb-2" />
-              <CardTitle>3D Visualizer</CardTitle>
+              <Bot className="w-10 h-10 text-primary mb-2" />
+              <CardTitle>AI Design Assistant</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">Transform your space in real-time with AI</p>
+              <p className="text-muted-foreground mb-4">Get personalized AI recommendations</p>
               <Button className="w-full bg-primary hover:bg-primary/90">
-                Open Visualizer
+                Get Recommendations
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-card border-border/50 hover:shadow-glow-secondary transition-all cursor-pointer">
+          <Card 
+            className="bg-gradient-card border-border/50 hover:shadow-glow-secondary transition-all cursor-pointer"
+            onClick={() => setShowEditor(true)}
+          >
             <CardHeader>
-              <Bot className="w-10 h-10 text-secondary mb-2" />
-              <CardTitle>AI Assistant</CardTitle>
+              <Plus className="w-10 h-10 text-secondary mb-2" />
+              <CardTitle>Create New Design</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">Get personalized design recommendations</p>
+              <p className="text-muted-foreground mb-4">Design your dream room from scratch</p>
               <Button className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-                Chat with AI
+                Start Designing
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-card border-border/50 hover:shadow-glow-primary transition-all cursor-pointer">
+          <Card className="bg-gradient-card border-border/50 hover:shadow-glow-primary transition-all">
             <CardHeader>
               <ShoppingBag className="w-10 h-10 text-accent mb-2" />
-              <CardTitle>Shop Designs</CardTitle>
+              <CardTitle>Featured Designs</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">Browse curated room collections</p>
+              <p className="text-muted-foreground mb-4">Browse curated collections</p>
               <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                Browse Shop
+                Explore Shop
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* AI Recommendations */}
-        <Card className="bg-gradient-card border-border/50 mb-8">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              <CardTitle>AI-Curated Recommendations</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              {recommendations.map((rec) => (
-                <div key={rec.id} className="group">
-                  <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
-                    <div className="text-muted-foreground">Preview Image</div>
+        {featuredDesigns.length > 0 && (
+          <Card className="bg-gradient-card border-border/50 mb-8">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-primary" />
+                <CardTitle>Featured Designs</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-6">
+                {featuredDesigns.map((design) => (
+                  <div key={design.id} className="group">
+                    <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                      {design.image_url ? (
+                        <img src={design.image_url} alt={design.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <Palette className="w-12 h-12 text-muted-foreground" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors">{design.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">{design.style} • {design.room_type}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-accent">${design.price}</span>
+                      <Button size="sm" variant="outline">View Details</Button>
+                    </div>
                   </div>
-                  <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors">{rec.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{rec.style}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-accent">{rec.price}</span>
-                    <Button size="sm" variant="outline">View Details</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Recent Activity */}
         <Card className="bg-gradient-card border-border/50">
-          <CardHeader>
-            <CardTitle>Recent Projects</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>My Designs</CardTitle>
+            <Button onClick={() => setShowEditor(true)} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              New Design
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-4 p-4 rounded-lg bg-background/50 border border-border/50">
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                    <Home className="w-8 h-8 text-muted-foreground" />
+              {myDesigns.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No designs yet. Create your first design!
+                </p>
+              ) : (
+                myDesigns.map((design) => (
+                  <div key={design.id} className="flex items-center gap-4 p-4 rounded-lg bg-background/50 border border-border/50">
+                    <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
+                      {design.image_url ? (
+                        <img src={design.image_url} alt={design.title} className="w-full h-full object-cover rounded-lg" />
+                      ) : (
+                        <Home className="w-8 h-8 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{design.title}</h4>
+                      <p className="text-sm text-muted-foreground">{design.style} • {design.room_type}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-accent">${design.price}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingDesign(design);
+                          setShowEditor(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(design.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold">Living Room Design {i}</h4>
-                    <p className="text-sm text-muted-foreground">Last edited 2 days ago</p>
-                  </div>
-                  <Button variant="ghost" size="sm">Open</Button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={showEditor} onOpenChange={(open) => {
+        setShowEditor(open);
+        if (!open) setEditingDesign(undefined);
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingDesign ? 'Edit Design' : 'Create New Design'}</DialogTitle>
+          </DialogHeader>
+          <DesignEditor
+            design={editingDesign}
+            onSave={handleSave}
+            onCancel={() => {
+              setShowEditor(false);
+              setEditingDesign(undefined);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>AI Design Recommendations</DialogTitle>
+          </DialogHeader>
+          <AIRecommendations />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
