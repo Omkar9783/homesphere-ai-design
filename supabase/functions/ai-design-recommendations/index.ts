@@ -11,30 +11,42 @@ serve(async (req) => {
   }
 
   try {
-    const { roomType, style, budget, preferences } = await req.json();
+    const { roomType, style, budget, preferences, modelPreference = 'gemini' } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are an expert interior designer AI assistant. Generate creative, practical, and personalized room design recommendations based on user preferences. Provide detailed suggestions including furniture, colors, materials, and layout ideas.`;
+    // Select model based on user preference - supports both Gemini and GPT models
+    const modelMap: Record<string, string> = {
+      'gemini': 'google/gemini-2.5-flash',
+      'gemini-pro': 'google/gemini-2.5-pro',
+      'gpt': 'openai/gpt-5-mini',
+      'gpt-pro': 'openai/gpt-5',
+    };
+    
+    const selectedModel = modelMap[modelPreference] || 'google/gemini-2.5-flash';
+
+    const systemPrompt = `You are an expert interior designer AI assistant with years of experience in creating beautiful, functional spaces. Generate creative, practical, and personalized room design recommendations based on user preferences. Provide detailed suggestions including furniture, colors, materials, and layout ideas that can be implemented within the specified budget.`;
 
     const userPrompt = `Generate a detailed interior design recommendation for:
     - Room Type: ${roomType}
     - Style: ${style}
-    - Budget: ${budget}
+    - Budget: $${budget}
     - Additional Preferences: ${preferences || 'None'}
     
     Provide a comprehensive design plan including:
-    1. Color palette (3-5 colors)
-    2. Key furniture pieces (5-7 items)
-    3. Materials and textures
-    4. Lighting suggestions
-    5. Decor elements
-    6. Layout tips
+    1. Color palette (3-5 colors with specific color codes)
+    2. Key furniture pieces (5-7 items with estimated prices)
+    3. Materials and textures recommendations
+    4. Lighting suggestions (ambient, task, and accent)
+    5. Decor elements and accessories with shopping tips
+    6. Layout tips for optimal space utilization
     
-    Format the response as a detailed, actionable design plan.`;
+    Format the response as a detailed, actionable design plan that is practical and achievable within the budget.`;
+
+    console.log(`Using AI model: ${selectedModel} for design recommendation`);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -43,7 +55,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: selectedModel,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -75,8 +87,10 @@ serve(async (req) => {
     const data = await response.json();
     const recommendation = data.choices[0].message.content;
 
+    console.log('Successfully generated AI recommendation');
+
     return new Response(
-      JSON.stringify({ recommendation }),
+      JSON.stringify({ recommendation, model: selectedModel }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

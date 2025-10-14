@@ -18,6 +18,7 @@ export const AIRecommendations = () => {
     style: 'Modern',
     budget: '',
     preferences: '',
+    modelPreference: 'gemini',
   });
 
   const getAIRecommendation = async () => {
@@ -127,6 +128,24 @@ export const AIRecommendations = () => {
               onChange={(e) => setFormData({ ...formData, preferences: e.target.value })}
               rows={3}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="modelPreference">AI Model</Label>
+            <Select
+              value={formData.modelPreference}
+              onValueChange={(value) => setFormData({ ...formData, modelPreference: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gemini">Gemini Flash (Fast & Balanced)</SelectItem>
+                <SelectItem value="gemini-pro">Gemini Pro (Most Detailed)</SelectItem>
+                <SelectItem value="gpt">GPT-5 Mini (Fast)</SelectItem>
+                <SelectItem value="gpt-pro">GPT-5 (Premium Quality)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Button
