@@ -32,8 +32,18 @@ const Auth = () => {
   });
 
   useEffect(() => {
-    if (user && userRole) {
-      navigate(userRole === 'admin' ? '/admin' : '/dashboard');
+    if (user) {
+      // Wait a bit for role to load, then redirect even if role is null
+      const timer = setTimeout(() => {
+        if (userRole === 'admin') {
+          navigate('/admin');
+        } else if (userRole === 'customer' || userRole === null) {
+          // Default to customer dashboard if no role
+          navigate('/dashboard');
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
   }, [user, userRole, navigate]);
 
