@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Home, Bot, ShoppingBag, Palette, Sparkles, LogOut, Edit, Trash2, Plus } from "lucide-react";
+import { Home, Bot, ShoppingBag, Palette, Sparkles, LogOut, Edit, Trash2, Plus, User, Eye } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DesignEditor } from '@/components/design/DesignEditor';
 import { AIRecommendations } from '@/components/design/AIRecommendations';
+import { useNavigate } from 'react-router-dom';
 
 interface Design {
   id: string;
@@ -23,6 +24,7 @@ interface Design {
 const CustomerDashboard = () => {
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [myDesigns, setMyDesigns] = useState<Design[]>([]);
   const [featuredDesigns, setFeaturedDesigns] = useState<Design[]>([]);
   const [showEditor, setShowEditor] = useState(false);
@@ -89,10 +91,20 @@ const CustomerDashboard = () => {
               AI HomeSphere
             </span>
           </div>
-          <Button variant="ghost" onClick={signOut} className="hover:text-destructive">
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => navigate('/gallery')}>
+              <Eye className="w-4 h-4 mr-2" />
+              Gallery
+            </Button>
+            <Button variant="ghost" onClick={() => navigate('/profile')}>
+              <User className="w-4 h-4 mr-2" />
+              Profile
+            </Button>
+            <Button variant="ghost" onClick={signOut} className="hover:text-destructive">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -142,7 +154,10 @@ const CustomerDashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">Browse curated collections</p>
-              <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Button 
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                onClick={() => navigate('/gallery')}
+              >
                 Explore Shop
               </Button>
             </CardContent>
@@ -172,7 +187,13 @@ const CustomerDashboard = () => {
                     <p className="text-sm text-muted-foreground mb-2">{design.style} • {design.room_type}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-bold text-accent">${design.price}</span>
-                      <Button size="sm" variant="outline">View Details</Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => navigate(`/design/${design.id}`)}
+                      >
+                        View Details
+                      </Button>
                     </div>
                   </div>
                 ))}
