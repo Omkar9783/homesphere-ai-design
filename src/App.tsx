@@ -18,7 +18,7 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'admin' | 'customer' }) => {
   const { user, userRole, loading } = useAuth();
   
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gradient-hero">
+  if (loading || (requiredRole && user && userRole === null)) return <div className="min-h-screen flex items-center justify-center bg-gradient-hero">
     <div className="text-2xl">Loading...</div>
   </div>;
   

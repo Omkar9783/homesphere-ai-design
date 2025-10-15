@@ -82,15 +82,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) return { error };
       
-      if (data.user) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: data.user.id, role });
-        
-        if (roleError) {
-          console.error('Error creating user role:', roleError);
-        }
-      }
+      // Role assignment is handled by a secure backend trigger.
+      // New users get a default 'customer' role automatically.
+
 
       toast({
         title: "Account created successfully!",
