@@ -30,6 +30,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (session?.user) {
           setTimeout(async () => {
+            try {
+              // @ts-ignore - ensure role/profile exist for this user on first login
+              await supabase.rpc('ensure_user_initialized');
+            } catch (_) {
+              // ignore initialization errors
+            }
             const { data: roles } = await supabase
               .from('user_roles')
               .select('role')
@@ -51,6 +57,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (session?.user) {
         setTimeout(async () => {
+          try {
+            // @ts-ignore - ensure role/profile exist for this user on first login
+            await supabase.rpc('ensure_user_initialized');
+          } catch (_) {
+            // ignore initialization errors
+          }
           const { data: roles } = await supabase
             .from('user_roles')
             .select('role')

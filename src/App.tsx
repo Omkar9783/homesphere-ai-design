@@ -18,12 +18,21 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'admin' | 'customer' }) => {
   const { user, userRole, loading } = useAuth();
   
-  if (loading || (requiredRole && user && userRole === null)) return <div className="min-h-screen flex items-center justify-center bg-gradient-hero">
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gradient-hero">
     <div className="text-2xl">Loading...</div>
   </div>;
   
   if (!user) return <Navigate to="/login" replace />;
-  if (requiredRole && userRole !== requiredRole) return <Navigate to="/login" replace />;
+  
+  // Admin routes require explicit admin role
+  if (requiredRole === 'admin' && userRole !== 'admin') {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Customer routes allow access even while role is initializing (null)
+  if (requiredRole === 'customer') {
+    return <>{children}</>;
+  }
   
   return <>{children}</>;
 };
