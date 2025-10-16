@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Home, Bot, ShoppingBag, Palette, Sparkles, LogOut, Edit, Trash2, Plus, User, Eye } from "lucide-react";
+import { Home, Bot, ShoppingBag, Palette, Sparkles, LogOut, Edit, Trash2, Plus, User, Eye, Camera } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DesignEditor } from '@/components/design/DesignEditor';
 import { AIRecommendations } from '@/components/design/AIRecommendations';
+import { RoomPhotoUpload } from '@/components/design/RoomPhotoUpload';
+import { FurnitureShowcase } from '@/components/design/FurnitureShowcase';
 import { useNavigate } from 'react-router-dom';
 
 interface Design {
@@ -29,6 +31,7 @@ const CustomerDashboard = () => {
   const [featuredDesigns, setFeaturedDesigns] = useState<Design[]>([]);
   const [showEditor, setShowEditor] = useState(false);
   const [showAIDialog, setShowAIDialog] = useState(false);
+  const [showRoomUpload, setShowRoomUpload] = useState(false);
   const [editingDesign, setEditingDesign] = useState<Design | undefined>();
 
   useEffect(() => {
@@ -114,17 +117,33 @@ const CustomerDashboard = () => {
           <p className="text-muted-foreground">Create, edit, and explore AI-powered room designs</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card 
+            className="bg-gradient-card border-border/50 hover:shadow-glow-primary transition-all cursor-pointer"
+            onClick={() => setShowRoomUpload(true)}
+          >
+            <CardHeader>
+              <Camera className="w-10 h-10 text-primary mb-2" />
+              <CardTitle>AI Room Designer</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">Upload room photo for AI design</p>
+              <Button className="w-full bg-primary hover:bg-primary/90">
+                Upload & Design
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card 
             className="bg-gradient-card border-border/50 hover:shadow-glow-primary transition-all cursor-pointer"
             onClick={() => setShowAIDialog(true)}
           >
             <CardHeader>
               <Bot className="w-10 h-10 text-primary mb-2" />
-              <CardTitle>AI Design Assistant</CardTitle>
+              <CardTitle>AI Recommendations</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">Get personalized AI recommendations</p>
+              <p className="text-muted-foreground mb-4">Get personalized AI advice</p>
               <Button className="w-full bg-primary hover:bg-primary/90">
                 Get Recommendations
               </Button>
@@ -140,7 +159,7 @@ const CustomerDashboard = () => {
               <CardTitle>Create New Design</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">Design your dream room from scratch</p>
+              <p className="text-muted-foreground mb-4">Design your dream room</p>
               <Button className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground">
                 Start Designing
               </Button>
@@ -150,19 +169,21 @@ const CustomerDashboard = () => {
           <Card className="bg-gradient-card border-border/50 hover:shadow-glow-primary transition-all">
             <CardHeader>
               <ShoppingBag className="w-10 h-10 text-accent mb-2" />
-              <CardTitle>Featured Designs</CardTitle>
+              <CardTitle>Browse Gallery</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">Browse curated collections</p>
+              <p className="text-muted-foreground mb-4">Explore curated designs</p>
               <Button 
                 className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                 onClick={() => navigate('/gallery')}
               >
-                Explore Shop
+                Explore Gallery
               </Button>
             </CardContent>
           </Card>
         </div>
+
+        <FurnitureShowcase />
 
         {featuredDesigns.length > 0 && (
           <Card className="bg-gradient-card border-border/50 mb-8">
@@ -285,6 +306,15 @@ const CustomerDashboard = () => {
             <DialogTitle>AI Design Recommendations</DialogTitle>
           </DialogHeader>
           <AIRecommendations />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showRoomUpload} onOpenChange={setShowRoomUpload}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>AI Room Design Generator</DialogTitle>
+          </DialogHeader>
+          <RoomPhotoUpload />
         </DialogContent>
       </Dialog>
     </div>
