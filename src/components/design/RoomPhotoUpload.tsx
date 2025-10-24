@@ -79,9 +79,31 @@ export const RoomPhotoUpload = () => {
 
         if (data.image) {
           setGeneratedImage(data.image);
+          
+          // Save to database
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { error: saveError } = await supabase
+              .from('room_designs')
+              .insert({
+                user_id: user.id,
+                title: `AI ${formData.style} ${formData.roomType}`,
+                description: formData.description || `AI-generated ${formData.style} style ${formData.roomType} design`,
+                style: formData.style,
+                room_type: formData.roomType,
+                image_url: data.image,
+                ai_generated: true,
+                price: 0
+              });
+
+            if (saveError) {
+              console.error('Error saving design:', saveError);
+            }
+          }
+
           toast({
-            title: "Design Generated!",
-            description: "Your AI-designed room is ready.",
+            title: "Design Generated & Saved!",
+            description: "Your AI-designed room is ready and saved to gallery.",
           });
         }
       };

@@ -53,9 +53,31 @@ export const ImageEditor = ({ originalImage, onClose }: ImageEditorProps) => {
 
       if (data.image) {
         setEditedImage(data.image);
+        
+        // Save the edited design to database
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { error: saveError } = await supabase
+            .from('room_designs')
+            .insert({
+              user_id: user.id,
+              title: `Customized AI Design`,
+              description: `Edited with: ${prompt}`,
+              style: 'Custom',
+              room_type: 'Various',
+              image_url: data.image,
+              ai_generated: true,
+              price: 0
+            });
+
+          if (saveError) {
+            console.error('Error saving edited design:', saveError);
+          }
+        }
+
         toast({
-          title: "Edits Applied!",
-          description: "Your design has been customized.",
+          title: "Edits Applied & Saved!",
+          description: "Your customized design has been saved to gallery.",
         });
         setEditInstructions('');
         setColorChange('');
