@@ -125,7 +125,7 @@ const AdminDashboard = () => {
           <div className="flex items-center gap-2">
             <Home className="w-8 h-8 text-primary" />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              AI HomeSphere
+              Home Decor Management
             </span>
             <span className="ml-4 px-3 py-1 rounded-full bg-accent/20 text-accent text-sm font-medium">Admin</span>
           </div>

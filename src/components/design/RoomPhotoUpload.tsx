@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, Image as ImageIcon, Wand2 } from 'lucide-react';
+import { Loader2, Upload, Image as ImageIcon, Wand2, Palette } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { ImageEditor } from './ImageEditor';
 
 export const RoomPhotoUpload = () => {
   const { toast } = useToast();
@@ -14,6 +15,7 @@ export const RoomPhotoUpload = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     style: 'Modern',
@@ -209,7 +211,7 @@ export const RoomPhotoUpload = () => {
         </CardContent>
       </Card>
 
-      {generatedImage && (
+      {generatedImage && !showEditor && (
         <Card className="bg-gradient-card border-primary/50">
           <CardHeader>
             <CardTitle className="text-primary">Your AI-Generated Design</CardTitle>
@@ -220,16 +222,24 @@ export const RoomPhotoUpload = () => {
             </div>
             <div className="mt-4 flex gap-2">
               <Button
+                onClick={() => setShowEditor(true)}
+                className="flex-1 bg-primary hover:bg-primary/90"
+              >
+                <Palette className="w-4 h-4 mr-2" />
+                Customize Design
+              </Button>
+              <Button
                 onClick={() => {
                   const link = document.createElement('a');
                   link.href = generatedImage;
                   link.download = 'ai-room-design.png';
                   link.click();
                 }}
+                variant="outline"
                 className="flex-1"
               >
                 <ImageIcon className="w-4 h-4 mr-2" />
-                Download Design
+                Download
               </Button>
               <Button
                 variant="outline"
@@ -238,13 +248,19 @@ export const RoomPhotoUpload = () => {
                   setImagePreview(null);
                   setImageFile(null);
                 }}
-                className="flex-1"
               >
-                Start New Design
+                New Design
               </Button>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {generatedImage && showEditor && (
+        <ImageEditor
+          originalImage={generatedImage}
+          onClose={() => setShowEditor(false)}
+        />
       )}
     </div>
   );

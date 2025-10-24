@@ -114,7 +114,7 @@ const Auth = () => {
         <div className="flex items-center justify-center gap-2 mb-8">
           <Home className="w-10 h-10 text-primary" />
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            AI HomeSphere
+            Home Decor Management
           </h1>
         </div>
 

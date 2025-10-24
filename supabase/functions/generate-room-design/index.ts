@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageData, style, roomType, description } = await req.json();
+    const { imageData, style, roomType, description, editMode, editPrompt } = await req.json();
     
     if (!imageData) {
       return new Response(
@@ -32,7 +32,12 @@ serve(async (req) => {
     }
 
     // Construct the prompt for room design
-    const designPrompt = `Transform this empty room into a beautifully designed ${style} style ${roomType}. ${description ? description + '. ' : ''}Add appropriate furniture, decorations, lighting, and color scheme that matches the ${style} aesthetic. Make it look professional and inviting.`;
+    let designPrompt: string;
+    if (editMode && editPrompt) {
+      designPrompt = `Modify this room design: ${editPrompt}. Keep the overall room structure but apply the requested changes to colors, furniture sizes, or design elements. Make it look professional and realistic.`;
+    } else {
+      designPrompt = `Transform this empty room into a beautifully designed ${style} style ${roomType}. ${description ? description + '. ' : ''}Add appropriate furniture, decorations, lighting, and color scheme that matches the ${style} aesthetic. Make it look professional and inviting.`;
+    }
 
     console.log('Generating design with prompt:', designPrompt);
 

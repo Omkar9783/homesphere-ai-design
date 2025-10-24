@@ -12,7 +12,7 @@ const Landing = () => {
           <div className="flex items-center gap-2">
             <Home className="w-8 h-8 text-primary" />
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              AI HomeSphere
+              Home Decor Management
             </span>
           </div>
           <div className="flex items-center gap-4">

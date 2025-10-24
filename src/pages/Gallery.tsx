@@ -44,7 +44,7 @@ export default function Gallery() {
       <nav className="border-b bg-background/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-            AI HomeSphere
+            Home Decor Management
           </h1>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => navigate('/dashboard')}>
