@@ -148,7 +148,7 @@ export default function Gallery() {
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">{design.description}</p>
                   <div className="flex items-center justify-between">
-                    <p className="text-lg font-bold text-primary">${design.price}</p>
+                    <p className="text-lg font-bold text-primary">₹{design.price?.toLocaleString('en-IN') || '0'}</p>
                     <div className="flex gap-2">
                       <Button
                         variant="outline"

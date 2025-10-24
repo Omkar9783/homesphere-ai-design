@@ -80,7 +80,7 @@ export const RoomPhotoUpload = () => {
         if (data.image) {
           setGeneratedImage(data.image);
           
-          // Calculate price based on style and room type
+          // Calculate price in Indian Rupees based on style and room type
           const calculatePrice = () => {
             const styleMultipliers: Record<string, number> = {
               'Modern': 1.2,
@@ -92,16 +92,16 @@ export const RoomPhotoUpload = () => {
             };
             
             const roomBasePrices: Record<string, number> = {
-              'Living Room': 500,
-              'Bedroom': 400,
-              'Kitchen': 600,
-              'Bathroom': 350,
-              'Dining Room': 450,
-              'Office': 400
+              'Living Room': 35000,
+              'Bedroom': 28000,
+              'Kitchen': 45000,
+              'Bathroom': 25000,
+              'Dining Room': 32000,
+              'Office': 30000
             };
             
             const styleMultiplier = styleMultipliers[formData.style] || 1.0;
-            const basePrice = roomBasePrices[formData.roomType] || 400;
+            const basePrice = roomBasePrices[formData.roomType] || 30000;
             
             return Math.round(basePrice * styleMultiplier);
           };

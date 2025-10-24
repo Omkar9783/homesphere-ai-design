@@ -57,8 +57,8 @@ export const ImageEditor = ({ originalImage, onClose }: ImageEditorProps) => {
         // Save the edited design to database with premium pricing
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // Custom edited designs are priced 20% higher due to personalization
-          const customPrice = 600;
+          // Custom edited designs in Indian Rupees
+          const customPrice = 50000;
           
           const { error: saveError } = await supabase
             .from('room_designs')
