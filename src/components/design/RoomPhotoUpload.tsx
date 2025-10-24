@@ -80,6 +80,32 @@ export const RoomPhotoUpload = () => {
         if (data.image) {
           setGeneratedImage(data.image);
           
+          // Calculate price based on style and room type
+          const calculatePrice = () => {
+            const styleMultipliers: Record<string, number> = {
+              'Modern': 1.2,
+              'Minimalist': 1.0,
+              'Traditional': 1.1,
+              'Industrial': 1.3,
+              'Scandinavian': 1.2,
+              'Contemporary': 1.4,
+            };
+            
+            const roomBasePrices: Record<string, number> = {
+              'Living Room': 500,
+              'Bedroom': 400,
+              'Kitchen': 600,
+              'Bathroom': 350,
+              'Dining Room': 450,
+              'Office': 400
+            };
+            
+            const styleMultiplier = styleMultipliers[formData.style] || 1.0;
+            const basePrice = roomBasePrices[formData.roomType] || 400;
+            
+            return Math.round(basePrice * styleMultiplier);
+          };
+
           // Save to database
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
@@ -93,7 +119,7 @@ export const RoomPhotoUpload = () => {
                 room_type: formData.roomType,
                 image_url: data.image,
                 ai_generated: true,
-                price: 0
+                price: calculatePrice()
               });
 
             if (saveError) {

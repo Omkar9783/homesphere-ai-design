@@ -54,9 +54,12 @@ export const ImageEditor = ({ originalImage, onClose }: ImageEditorProps) => {
       if (data.image) {
         setEditedImage(data.image);
         
-        // Save the edited design to database
+        // Save the edited design to database with premium pricing
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Custom edited designs are priced 20% higher due to personalization
+          const customPrice = 600;
+          
           const { error: saveError } = await supabase
             .from('room_designs')
             .insert({
@@ -67,7 +70,7 @@ export const ImageEditor = ({ originalImage, onClose }: ImageEditorProps) => {
               room_type: 'Various',
               image_url: data.image,
               ai_generated: true,
-              price: 0
+              price: customPrice
             });
 
           if (saveError) {
