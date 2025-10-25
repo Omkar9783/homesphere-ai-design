@@ -10,11 +10,19 @@ const corsHeaders = {
 // Input validation schema
 const DesignRequestSchema = z.object({
   imageData: z.string().regex(/^data:image/, 'Invalid image data format'),
-  style: z.enum(['Modern', 'Minimalist', 'Traditional', 'Industrial', 'Scandinavian', 'Contemporary', 'Bohemian', 'Rustic']),
-  roomType: z.enum(['Living Room', 'Bedroom', 'Kitchen', 'Bathroom', 'Dining Room', 'Office', 'Study', 'Home Office']),
+  style: z.enum(['Modern', 'Minimalist', 'Traditional', 'Industrial', 'Scandinavian', 'Contemporary', 'Bohemian', 'Rustic']).optional(),
+  roomType: z.enum(['Living Room', 'Bedroom', 'Kitchen', 'Bathroom', 'Dining Room', 'Office', 'Study', 'Home Office']).optional(),
   description: z.string().max(500).optional(),
   editMode: z.boolean().optional(),
   editPrompt: z.string().max(300).optional()
+}).refine((data) => {
+  // If not in edit mode, style and roomType are required
+  if (!data.editMode) {
+    return data.style && data.roomType;
+  }
+  return true;
+}, {
+  message: "style and roomType are required when not in edit mode"
 });
 
 serve(async (req) => {
