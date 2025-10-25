@@ -1,9 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const RecommendationRequestSchema = z.object({
+  roomType: z.enum(['Living Room', 'Bedroom', 'Kitchen', 'Bathroom', 'Dining Room', 'Office', 'Study', 'Home Office']),
+  style: z.enum(['Modern', 'Minimalist', 'Traditional', 'Industrial', 'Scandinavian', 'Contemporary', 'Bohemian', 'Rustic']),
+  budget: z.number().min(100).max(1000000),
+  preferences: z.string().max(500).optional(),
+  modelPreference: z.enum(['gemini', 'gemini-pro', 'gpt', 'gpt-pro']).optional().default('gemini')
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,7 +21,29 @@ serve(async (req) => {
   }
 
   try {
-    const { roomType, style, budget, preferences, modelPreference = 'gemini' } = await req.json();
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Unauthorized request - missing Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const requestBody = await req.json();
+    
+    // Validate input
+    const validationResult = RecommendationRequestSchema.safeParse(requestBody);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.errors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { roomType, style, budget, preferences, modelPreference } = validationResult.data;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {

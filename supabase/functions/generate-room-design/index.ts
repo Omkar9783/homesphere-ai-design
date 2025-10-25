@@ -1,10 +1,21 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const DesignRequestSchema = z.object({
+  imageData: z.string().regex(/^data:image/, 'Invalid image data format'),
+  style: z.enum(['Modern', 'Minimalist', 'Traditional', 'Industrial', 'Scandinavian', 'Contemporary', 'Bohemian', 'Rustic']),
+  roomType: z.enum(['Living Room', 'Bedroom', 'Kitchen', 'Bathroom', 'Dining Room', 'Office', 'Study', 'Home Office']),
+  description: z.string().max(500).optional(),
+  editMode: z.boolean().optional(),
+  editPrompt: z.string().max(300).optional()
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -13,7 +24,29 @@ serve(async (req) => {
   }
 
   try {
-    const { imageData, style, roomType, description, editMode, editPrompt } = await req.json();
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Unauthorized request - missing Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const requestBody = await req.json();
+    
+    // Validate input
+    const validationResult = DesignRequestSchema.safeParse(requestBody);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.errors }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    const { imageData, style, roomType, description, editMode, editPrompt } = validationResult.data;
     
     if (!imageData) {
       return new Response(

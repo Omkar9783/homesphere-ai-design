@@ -1,7 +1,7 @@
 project_id = "grxlxnjpdvxvlzsucozp"
 
 [functions.ai-design-recommendations]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-room-design]
-verify_jwt = false
+verify_jwt = true
