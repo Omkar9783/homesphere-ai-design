@@ -11,7 +11,7 @@ export const FurnitureShowcase = () => {
       id: 1,
       name: 'Modern Gray Sofa',
       category: 'Living Room',
-      price: 1299,
+      price: 129900,
       image: sofaImage,
       icon: Sofa,
       description: 'Contemporary 3-seater sofa with wooden legs'
@@ -20,7 +20,7 @@ export const FurnitureShowcase = () => {
       id: 2,
       name: 'Elegant Bedroom Set',
       category: 'Bedroom',
-      price: 2499,
+      price: 249900,
       image: bedroomImage,
       icon: Bed,
       description: 'King size bed with nightstands and elegant decor'
@@ -29,7 +29,7 @@ export const FurnitureShowcase = () => {
       id: 3,
       name: 'Living Room Collection',
       category: 'Living Room',
-      price: 3299,
+      price: 329900,
       image: livingRoomImage,
       icon: Home,
       description: 'Complete living room furniture set with coffee table'
@@ -67,7 +67,7 @@ export const FurnitureShowcase = () => {
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-accent">${item.price}</span>
+                  <span className="text-lg font-bold text-accent">₹{item.price.toLocaleString('en-IN')}</span>
                   <Button size="sm" variant="outline" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                     View Details
                   </Button>

@@ -147,7 +147,7 @@ export default function DesignDetail() {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Price</p>
-                      <p className="font-medium text-primary text-xl">${design.price}</p>
+                      <p className="font-medium text-primary text-xl">₹{design.price?.toLocaleString('en-IN') || '0'}</p>
                     </div>
                   </div>
                 </div>

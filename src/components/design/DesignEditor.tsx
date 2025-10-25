@@ -156,11 +156,11 @@ export const DesignEditor = ({ design, onSave, onCancel }: DesignEditorProps) =>
           </div>
 
           <div>
-            <Label htmlFor="price">Price ($)</Label>
+            <Label htmlFor="price">Price (₹)</Label>
             <Input
               id="price"
               type="number"
-              step="0.01"
+              step="1"
               value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
               required
