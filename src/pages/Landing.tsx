@@ -98,23 +98,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="container mx-auto px-6 py-16">
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            { value: "50K+", label: "Designs Created" },
-            { value: "98%", label: "Satisfaction Rate" },
-            { value: "10K+", label: "Happy Customers" }
-          ].map((stat, idx) => (
-            <div key={idx} className="text-center p-8 rounded-xl bg-gradient-card border border-border/50">
-              <div className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                {stat.value}
-              </div>
-              <div className="text-muted-foreground mt-2">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 };
