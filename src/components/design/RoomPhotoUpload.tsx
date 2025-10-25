@@ -154,6 +154,14 @@ export const RoomPhotoUpload = () => {
             <CardTitle>AI Room Design Generator</CardTitle>
           </div>
           <p className="text-sm text-muted-foreground">Upload your empty room photo and let AI design it for you</p>
+          <div className="mt-2 p-3 bg-muted/50 rounded-md border border-border/50">
+            <p className="text-xs font-medium text-muted-foreground">
+              <span className="font-semibold text-foreground">Powered by:</span> Google Gemini 2.5 Flash Image Preview
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Advanced AI model specialized in image generation and room design visualization
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
