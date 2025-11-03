@@ -109,11 +109,11 @@ export const AIRecommendations = () => {
           </div>
 
           <div>
-            <Label htmlFor="budget">Budget ($)</Label>
+            <Label htmlFor="budget">Budget (₹)</Label>
             <Input
               id="budget"
               type="number"
-              placeholder="e.g., 5000"
+              placeholder="e.g., 50000"
               value={formData.budget}
               onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
             />
