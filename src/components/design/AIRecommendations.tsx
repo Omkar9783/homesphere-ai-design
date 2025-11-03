@@ -35,7 +35,10 @@ export const AIRecommendations = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-design-recommendations', {
-        body: formData
+        body: {
+          ...formData,
+          budget: parseFloat(formData.budget)
+        }
       });
 
       if (error) throw error;
