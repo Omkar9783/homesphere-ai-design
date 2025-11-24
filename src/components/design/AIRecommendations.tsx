@@ -41,7 +41,30 @@ export const AIRecommendations = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific error messages from the edge function
+        const errorMsg = error.message || JSON.stringify(error);
+        if (errorMsg.includes('Payment required') || errorMsg.includes('credits')) {
+          toast({
+            title: "Credits Required",
+            description: "Please add credits to your workspace to use AI features. Go to Settings → Workspace → Usage.",
+            variant: "destructive",
+          });
+        } else if (errorMsg.includes('Rate limit')) {
+          toast({
+            title: "Rate Limit Exceeded",
+            description: "Too many requests. Please wait a moment and try again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error getting recommendation",
+            description: errorMsg,
+            variant: "destructive",
+          });
+        }
+        return;
+      }
 
       setRecommendation(data.recommendation);
       toast({
