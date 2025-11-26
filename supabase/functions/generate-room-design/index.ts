@@ -82,40 +82,39 @@ serve(async (req) => {
 
     console.log('Generating design with prompt:', designPrompt);
 
-    // Call Lovable AI Gateway with image generation model
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: designPrompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageData
+    // Try Lovable AI first
+    let generatedImage: string | null = null;
+    
+    try {
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-image-preview',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: designPrompt
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: imageData
+                  }
                 }
-              }
-            ]
-          }
-        ],
-        modalities: ['image', 'text']
-      }),
-    });
+              ]
+            }
+          ],
+          modalities: ['image', 'text']
+        }),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
@@ -123,21 +122,64 @@ serve(async (req) => {
         );
       }
       
+      // If credits exhausted, try OpenAI fallback
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
-        );
+        console.log('Lovable AI credits exhausted, attempting OpenAI fallback');
+        const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+        
+        if (!OPENAI_API_KEY) {
+          return new Response(
+            JSON.stringify({ error: 'AI credits exhausted and no fallback configured. Please add credits or configure OpenAI API key.' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 402 }
+          );
+        }
+
+        // Use OpenAI DALL-E as fallback
+        const openaiResponse = await fetch('https://api.openai.com/v1/images/edits', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          },
+          body: (() => {
+            const formData = new FormData();
+            // Convert base64 to blob
+            const base64Data = imageData.split(',')[1];
+            const binaryData = atob(base64Data);
+            const bytes = new Uint8Array(binaryData.length);
+            for (let i = 0; i < binaryData.length; i++) {
+              bytes[i] = binaryData.charCodeAt(i);
+            }
+            const blob = new Blob([bytes], { type: 'image/png' });
+            formData.append('image', blob, 'room.png');
+            formData.append('prompt', designPrompt);
+            formData.append('n', '1');
+            formData.append('size', '1024x1024');
+            return formData;
+          })(),
+        });
+
+        if (!openaiResponse.ok) {
+          const errorText = await openaiResponse.text();
+          console.error('OpenAI fallback error:', openaiResponse.status, errorText);
+          throw new Error(`OpenAI fallback failed: ${openaiResponse.status}`);
+        }
+
+        const openaiData = await openaiResponse.json();
+        generatedImage = openaiData.data?.[0]?.url;
+        console.log('Image generated using OpenAI fallback');
+      } else if (!response.ok) {
+        const errorText = await response.text();
+        console.error('AI Gateway error:', response.status, errorText);
+        throw new Error(`AI Gateway error: ${response.status} ${errorText}`);
+      } else {
+        const data = await response.json();
+        console.log('AI response received from Lovable AI');
+        generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       }
-
-      throw new Error(`AI Gateway error: ${response.status} ${errorText}`);
+    } catch (error) {
+      console.error('Error generating image:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    console.log('AI response received');
-
-    // Extract the generated image
-    const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!generatedImage) {
       throw new Error('No image generated from AI response');
