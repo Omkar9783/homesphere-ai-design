@@ -134,28 +134,21 @@ serve(async (req) => {
           );
         }
 
-        // Use OpenAI DALL-E as fallback
-        const openaiResponse = await fetch('https://api.openai.com/v1/images/edits', {
+        // Use OpenAI gpt-image-1 as fallback
+        const openaiResponse = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
           },
-          body: (() => {
-            const formData = new FormData();
-            // Convert base64 to blob
-            const base64Data = imageData.split(',')[1];
-            const binaryData = atob(base64Data);
-            const bytes = new Uint8Array(binaryData.length);
-            for (let i = 0; i < binaryData.length; i++) {
-              bytes[i] = binaryData.charCodeAt(i);
-            }
-            const blob = new Blob([bytes], { type: 'image/png' });
-            formData.append('image', blob, 'room.png');
-            formData.append('prompt', designPrompt);
-            formData.append('n', '1');
-            formData.append('size', '1024x1024');
-            return formData;
-          })(),
+          body: JSON.stringify({
+            model: 'gpt-image-1',
+            prompt: designPrompt,
+            n: 1,
+            size: '1024x1024',
+            quality: 'high',
+            output_format: 'png'
+          }),
         });
 
         if (!openaiResponse.ok) {
@@ -165,8 +158,12 @@ serve(async (req) => {
         }
 
         const openaiData = await openaiResponse.json();
-        generatedImage = openaiData.data?.[0]?.url;
-        console.log('Image generated using OpenAI fallback');
+        // gpt-image-1 returns base64 encoded images
+        const base64Image = openaiData.data?.[0]?.b64_json;
+        if (base64Image) {
+          generatedImage = `data:image/png;base64,${base64Image}`;
+        }
+        console.log('Image generated using OpenAI gpt-image-1 fallback');
       } else if (!response.ok) {
         const errorText = await response.text();
         console.error('AI Gateway error:', response.status, errorText);
